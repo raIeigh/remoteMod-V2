@@ -1,5 +1,5 @@
-const { Discord } = require('./src/modules')
-const { getCommands, findCommand, updateCommands, requireJSON } = require('./src/functions')
+const { Discord } = require("./src/modules")
+const { getCommands, findCommand, updateCommands, requireJSON } = require("./src/functions")
 
 const { Client, REST } = Discord
 
@@ -7,15 +7,15 @@ const client = new Client({
     intents: 3243773
 })
 client.rest = new REST({
-    version: '10'
+    version: "10"
 })
 client.commands = getCommands()
-client.config = requireJSON('config.json')
+client.config = requireJSON("config.json")
 
-client.on('interactionCreate', async (interaction) => {
+client.on("interactionCreate", async (interaction) => {
     const commandName = interaction.commandName
     const command = findCommand(client, commandName)
-    if (!command) return await interaction.reply('No.').catch(() => { })
+    if (!command) return await interaction.reply("No.").catch(() => { })
 
     const execute = command.execute
 
@@ -26,9 +26,11 @@ client.on('interactionCreate', async (interaction) => {
     await interaction.reply(response).catch(() => { })
 })
 
-client.on('ready', () => {
+client.on("ready", () => {
     updateCommands(client)
-    console.log('poopert')
+    console.log(`${client.user.username}'s up`)
 })
 
-client.login(process.env.REMOTEMOD_KEY)
+module.exports = async function (token) {
+    await client.login(token)
+}

@@ -1,4 +1,4 @@
-const { Discord, fs, path } = require('./modules')
+const { Discord, fs, path } = require("./modules")
 
 let functions = {}
 
@@ -19,8 +19,8 @@ functions.requireJSON = function (path) {
 }
 
 functions.generateID = function (length = 10) {
-    var charset = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ-_'
-    var id = ''
+    var charset = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ-_"
+    var id = ""
 
     for (var i = 0; i < length; i++) {
         id += charset[Math.floor(Math.random() * charset.length)]
@@ -32,7 +32,7 @@ functions.generateID = function (length = 10) {
 functions.getCommands = function () {
     const { SlashCommandBuilder } = Discord
 
-    const commands = fs.readdirSync('src/cmds').map((cmd) => {
+    const commands = fs.readdirSync("src/cmds").map((cmd) => {
         let command = require(`./cmds/${cmd}`)
         command.name = path.parse(cmd).name
         command.args = command.args ?? []
