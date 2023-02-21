@@ -88,8 +88,6 @@ functions.processTask = async function (client, topic, data) {
     const response = await new Promise(async (resolve, reject) => {
         task.completion = { resolve, reject }
 
-        console.log(data)
-
         setTimeout(() => {
             if (!task.processed) reject("Task timed out.")
         }, timeoutMS)

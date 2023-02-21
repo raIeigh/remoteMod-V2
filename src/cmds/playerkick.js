@@ -21,12 +21,12 @@ module.exports = {
         const reason = interaction.options.getString("reason") ?? "You've been kicked from the game"
 
         let err
-        const response = await processTask(client, "PlayerKick", {
+        const username = await processTask(client, "PlayerKick", {
             User: user,
             Reason: reason
         }).catch((e) => err = e)
         
         if (err) throw err
-        return response ?? "Kicked successfully."
+        return `Kicked ${username ? `\`${username}\` ` : ''}successfully.`
     }
 }

@@ -12,30 +12,40 @@ async function main() {
     app.use(bp.json())
     app.use(bp.urlencoded({ extended: true }))
 
-    app.post("/tasks/:taskID", (req, res) => {
-        const taskID = req.params.taskID
-        const success = !!req.body.success
-        const reason = req.body.reason
+    app.route("/tasks/:taskID")
+        .get((req, res) => {
+            const taskID = req.params.taskID
 
-        let tasks = client.tasks
-        const task = tasks[taskID]
+            let tasks = client.tasks
+            const task = tasks[taskID]
 
-        res.type("json")
+            res.type("json")
+            res.send(task ?? {})
+        })
+        .post((req, res) => {
+            const taskID = req.params.taskID
+            const success = !!req.body.success
+            const response = req.body.response
 
-        if (!task || task.processed) {
-            const errReason = !task && "Task does not exist." ||
-                task.processed && "Task was already processed."
+            let tasks = client.tasks
+            const task = tasks[taskID]
 
-            res.status(400)
-            return res.send({ success: false, reason: errReason })
-        }
+            res.type("json")
 
-        const complete = task.completion[success ? "resolve" : "reject"]
-        complete(reason)
-        delete tasks[taskID]
+            if (!task || task.processed) {
+                const errReason = !task && "Task does not exist." ||
+                    task.processed && "Task was already processed."
 
-        res.send({ success: true })
-    })
+                res.status(400)
+                return res.send({ success: false, reason: errReason })
+            }
+
+            const complete = task.completion[success ? "resolve" : "reject"]
+            complete(response)
+            delete tasks[taskID]
+
+            res.send({ success: true })
+        })
 
     app.listen(PORT, () => console.log("Website is up"))
 
