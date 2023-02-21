@@ -6,7 +6,7 @@ async function main() {
     const PORT = process.env.PORT || 8080
     const app = express()
 
-    if (!process.env.WEBSITE_URL) process.env.WEBSITE_URL = process.env.RAILWAY_STATIC_URL ? `https://${process.env.RAILWAY_STATIC_URL}` : "http://localhost:8080"
+    if (!process.env.WEBSITE_URL) process.env.WEBSITE_URL = process.env.RAILWAY_STATIC_URL ? `https://${process.env.RAILWAY_STATIC_URL}` : `http://localhost:${PORT}`
 
     app.use(cors())
     app.use(bp.json())

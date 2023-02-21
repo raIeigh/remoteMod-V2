@@ -76,8 +76,15 @@ functions.updateCommands = function (client) {
 
 functions.processTask = async function (client, topic, data) {
     let tasks = client.tasks
+    const config = client.config
 
-    const { gameID, timeoutMS } = client.config
+    const gameID = config.gameID
+    const placeID = config.placeID
+    const timeoutMS = config.timeoutMS
+
+    const serversNum = await axios.get(`https://games.roblox.com/v1/games/${placeID}/servers/0`).then(res => res.data.data.length).catch((e) => console.log(e))
+    if (!serversNum) throw "There's no active servers, I can't do that."
+
     const taskID = functions.generateID()
     data.TaskURL = `${process.env.WEBSITE_URL}/tasks/${taskID}`
     
@@ -89,7 +96,7 @@ functions.processTask = async function (client, topic, data) {
         task.completion = { resolve, reject }
 
         setTimeout(() => {
-            if (!task.processed) reject("Task timed out.")
+            if (!task.processed) reject("Task timed out. Make sure you aren't running this on a localhost.")
         }, timeoutMS)
 
         let err

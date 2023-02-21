@@ -1,4 +1,4 @@
-const { Discord } = require("./src/modules")
+const { Discord, axios } = require("./src/modules")
 const { getCommands, findCommand, updateCommands, requireJSON } = require("./src/functions")
 
 const { Client, REST } = Discord
@@ -29,12 +29,13 @@ client.on("interactionCreate", async (interaction) => {
     await interaction.editReply(response).catch(() => { })
 })
 
-client.on("ready", () => {
-    updateCommands(client)
-    console.log(`${client.user.username}'s up`)
-})
-
 module.exports = async function (token) {
     await client.login(token)
+    console.log(`${client.user.username}'s up`)
+
+    updateCommands(client)
+    const placeID = await axios.get(`https://develop.roblox.com/v1/universes/${client.config.gameID}/places?sortOrder=Asc&limit=10`).then(res => res.data.data[0].id).catch(() => { })
+    if (placeID) client.config.placeID = placeID
+    
     return client
 }
