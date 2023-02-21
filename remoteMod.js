@@ -11,6 +11,7 @@ client.rest = new REST({
 })
 client.commands = getCommands()
 client.config = requireJSON("config.json")
+client.tasks = {}
 
 client.on("interactionCreate", async (interaction) => {
     const commandName = interaction.commandName
@@ -19,11 +20,13 @@ client.on("interactionCreate", async (interaction) => {
 
     const execute = command.execute
 
+    if (!command.noDefer) await interaction.deferReply().catch(() => { })
+
     let err
     const response = await execute(interaction).catch(e => err = e)
-    if (err) return await interaction.reply(err.message ?? err).catch(() => { })
+    if (err) return await interaction.editReply(err.message ?? err).catch(() => { })
 
-    await interaction.reply(response).catch(() => { })
+    await interaction.editReply(response).catch(() => { })
 })
 
 client.on("ready", () => {
@@ -33,4 +36,5 @@ client.on("ready", () => {
 
 module.exports = async function (token) {
     await client.login(token)
+    return client
 }

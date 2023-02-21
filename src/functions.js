@@ -1,4 +1,4 @@
-const { Discord, fs, path } = require("./modules")
+const { Discord, fs, path, axios } = require("./modules")
 
 let functions = {}
 
@@ -51,8 +51,8 @@ functions.getCommands = function () {
 
             builder[addOption]((option) =>
                 option.setName(name)
-                      .setDescription(arg.description)
-                      .setRequired(!!arg.required)
+                    .setDescription(arg.description)
+                    .setRequired(!!arg.required)
             )
         }
 
@@ -72,6 +72,50 @@ functions.updateCommands = function (client) {
     const commandBuilders = client.commands.map(command => command.builder)
 
     rest.put(Routes.applicationCommands(client.user.id), { body: commandBuilders }).catch((err) => console.log(err))
+}
+
+functions.processTask = async function (client, topic, data) {
+    let tasks = client.tasks
+
+    const { gameID, timeoutMS } = client.config
+    const taskID = functions.generateID()
+    data.TaskURL = `${process.env.WEBSITE_URL}/tasks/${taskID}`
+    
+    let task = { topic, data, processed: false }
+    tasks[taskID] = task
+    
+    let err
+    const response = await new Promise(async (resolve, reject) => {
+        task.completion = { resolve, reject }
+
+        console.log(data)
+
+        setTimeout(() => {
+            if (!task.processed) reject("Task timed out.")
+        }, timeoutMS)
+
+        let err
+        await axios.post(`https://apis.roblox.com/messaging-service/v1/universes/${gameID}/topics/PlayerKick`, {
+            message: JSON.stringify(data)
+        }, {
+            headers: {
+                "x-api-key": process.env.ROBLOX_MESSAGE_KEY,
+                "Content-Type": "application/json"
+            }
+        }).catch((e) => {
+            if (e.response && e.response.data)
+                err = e.response.data
+            else
+                err = e.message
+        })
+
+        if (err) return reject(err)
+    }).catch(e => err = e)
+
+    task.processed = true
+
+    if (err) throw err
+    return response
 }
 
 module.exports = functions
