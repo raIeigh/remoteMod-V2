@@ -9,7 +9,7 @@ module.exports = {
             required: true
         },
         reason: {
-            description: "The reason for kicking the player.",
+            description: "The reason for moderating the player.",
             type: "String",
             required: false
         }
@@ -27,6 +27,6 @@ module.exports = {
         }).catch((e) => err = e)
         
         if (err) throw err
-        return `Kicked ${username ? `\`${username}\` ` : ''}successfully.`
+        return `Kicked ${username ? `**${username}** ` : ''}successfully.`
     }
 }

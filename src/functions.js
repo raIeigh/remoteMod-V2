@@ -95,8 +95,10 @@ functions.processTask = async function (client, topic, data) {
     const response = await new Promise(async (resolve, reject) => {
         task.completion = { resolve, reject }
 
+        console.log(data)
+
         setTimeout(() => {
-            if (!task.processed) reject("Task timed out. Make sure you aren't running this on a localhost.")
+            if (!task.processed) reject("Task timed out.")
         }, timeoutMS)
 
         let err
@@ -118,6 +120,7 @@ functions.processTask = async function (client, topic, data) {
     }).catch(e => err = e)
 
     task.processed = true
+    delete tasks[taskID]
 
     if (err) throw err
     return response

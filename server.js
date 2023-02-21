@@ -42,7 +42,6 @@ async function main() {
 
             const complete = task.completion[success ? "resolve" : "reject"]
             complete(response)
-            delete tasks[taskID]
 
             res.send({ success: true })
         })
