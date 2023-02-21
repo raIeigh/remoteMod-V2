@@ -102,7 +102,7 @@ functions.processTask = async function (client, topic, data) {
         }, timeoutMS)
 
         let err
-        await axios.post(`https://apis.roblox.com/messaging-service/v1/universes/${gameID}/topics/PlayerKick`, {
+        await axios.post(`https://apis.roblox.com/messaging-service/v1/universes/${gameID}/topics/${topic}`, {
             message: JSON.stringify(data)
         }, {
             headers: {

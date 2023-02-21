@@ -62,6 +62,6 @@ module.exports = {
         }).catch((e) => err = e)
 
         if (err) throw err
-        return `${duration ? "Banned" : "Permbanned"} ${username ? `**${username}** ` : ''}${duration ? `for **${durationMessage}**` : ''} successfully.`
+        return `${duration ? "Banned" : "Permbanned"} ${username ? `**${username}** ` : ''}${duration ? `for **${durationMessage}** ` : ''}successfully.`
     }
 }
