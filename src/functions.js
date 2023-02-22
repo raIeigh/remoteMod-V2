@@ -74,7 +74,7 @@ functions.updateCommands = function (client) {
     rest.put(Routes.applicationCommands(client.user.id), { body: commandBuilders }).catch((err) => console.log(err))
 }
 
-functions.processTask = async function (client, topic, data) {
+functions.processTask = async function (client, topic, data, altTask) {
     let tasks = client.tasks
     const config = client.config
 
@@ -82,16 +82,26 @@ functions.processTask = async function (client, topic, data) {
     const placeID = config.placeID
     const timeoutMS = config.timeoutMS
 
-    const serversNum = await axios.get(`https://games.roblox.com/v1/games/${placeID}/servers/0`).then(res => res.data.data.length).catch((e) => console.log(e))
-    if (!serversNum) throw "There's no active servers, I can't do that."
+    const serversNum = await axios.get(`https://games.roblox.com/v1/games/${placeID}/servers/0`).then(res => res.data.data.length).catch(() => { })
+
+    if (!serversNum) {
+        if (altTask) {
+            let err
+            const altTaskResponse = altTask && await altTask(client, topic, data).catch((e) => err = e)
+
+            if (err) throw err
+            return altTaskResponse
+        }
+        
+        throw "There's no active servers, I can't do that."
+    }
 
     const taskID = functions.generateID()
     data.TaskURL = `${process.env.WEBSITE_URL}/tasks/${taskID}`
-    
+
     let task = { topic, data, processed: false }
     tasks[taskID] = task
-    
-    let err
+
     const response = await new Promise(async (resolve, reject) => {
         task.completion = { resolve, reject }
 
@@ -107,7 +117,7 @@ functions.processTask = async function (client, topic, data) {
         }, {
             headers: {
                 "x-api-key": process.env.ROBLOX_MESSAGE_KEY,
-                "Content-Type": "application/json"
+                "content-type": "application/json"
             }
         }).catch((e) => {
             if (e.response && e.response.data)

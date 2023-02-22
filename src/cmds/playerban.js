@@ -1,4 +1,50 @@
+const { CryptoJS, axios } = require("../modules")
 const { processTask } = require("../functions")
+
+async function altTask(client, _, data) {
+    const config = client.config
+
+    const gameID = config.gameID
+
+    const user = data.User
+    const duration = data.Duration
+    const reason = data.Reason
+
+    const userId = !isNaN(Number(user)) ? Number(user) : await axios.post(`https://users.roblox.com/v1/usernames/users`, {
+        usernames: [user],
+        excludeBannedUsers: false
+    }).then(res => res.data.data[0].id).catch(() => { })
+    if (!userId) throw "This player does not exist."
+
+    let username = await axios.get(`https://users.roblox.com/v1/users/${userId}`).then(res => res.data.name).catch(() => { })
+    if (!username) throw "This player does not exist."
+
+    let banData = await axios.get(`https://apis.roblox.com/datastores/v1/universes/${gameID}/standard-datastores/datastore/entries/entry?datastoreName=Bans&entryKey=${userId}`, {
+        headers: {
+            "x-api-key": process.env.ROBLOX_MESSAGE_KEY,
+            "content-type": "application/json"
+        }
+    }).then(res => res.data).catch(() => { })
+    if (banData) {
+        const duration = banData.Duration
+        if (typeof (duration) != "number" || duration > Math.floor(Date.now() / 1000)) throw "Player is already banned."
+    }
+
+    banData = {
+        Duration: typeof (duration) == "number" ? Math.floor(Date.now() / 1000) + duration : duration,
+        Reason: reason
+    }
+    const banDataMD5 = CryptoJS.enc.Base64.stringify(CryptoJS.MD5(JSON.stringify(banData)))
+
+    await axios.post(`https://apis.roblox.com/datastores/v1/universes/${gameID}/standard-datastores/datastore/entries/entry?datastoreName=Bans&entryKey=${userId}`, banData, {
+        headers: {
+            "x-api-key": process.env.ROBLOX_MESSAGE_KEY,
+            "content-type": "application/json",
+            "content-md5": banDataMD5
+        }
+    }).then(res => res.data).catch(() => { })
+    return username
+}
 
 module.exports = {
     description: "Bans a player in the game.",
@@ -44,12 +90,12 @@ module.exports = {
 
             if (!unit) unit = "seconds"
 
-            if (isNaN(time)) throw "Can't parse duration time."
+            if (isNaN(Number(time))) throw "Can't parse duration time."
             else time = Number(time)
 
             if (!units[unit.replace(/s$/, '')]) throw "Can't parse duration unit."
             else if (unit.match(/s$/) && time == 1) unit = unit.replace(/s$/, '')
-            
+
             durationMessage = `${time} ${unit}`
             durationValue = time * units[unit.replace(/s$/, '')]
         }
@@ -59,7 +105,7 @@ module.exports = {
             User: user,
             Duration: durationValue,
             Reason: `${reason} (Duration: ${durationMessage})`
-        }).catch((e) => err = e)
+        }, altTask).catch((e) => err = e)
 
         if (err) throw err
         return `${duration ? "Banned" : "Permbanned"} ${username ? `**${username}** ` : ''}${duration ? `for **${durationMessage}** ` : ''}successfully.`
